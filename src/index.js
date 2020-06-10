@@ -2,13 +2,13 @@ const fs = require('fs')
 const util = require('./rr_util')
 
 var options = {
-    task: 'N',      // N (navigation) or C (computation).
-    folder: 'tmp',  // where output files are (to be) stored.
+    task: 'N',      // N (navigation), C (computation), B (batch).
+    folder: 'tmp',  // Where output files are (to be) stored.
 
     // Following attributes are applied when task === 'N'.
     url: 'https://www.qq.com',
     emu: {
-        down: 100,      // Download bandwidth in KB.
+        down: 300,        // Download bandwidth in KB.
         up: 300         // Upload bandwidth in KB.
     }
 }
@@ -24,6 +24,9 @@ if (options.task === 'N') {
     else {
         util.navigate(options.url, options.folder)
     }
+}
+else if (options.task === 'B') {
+    
 }
 else {
     var metadata = JSON.parse(fs.readFileSync(`${options.folder}/metadata.json`))

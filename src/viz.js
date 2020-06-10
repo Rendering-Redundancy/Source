@@ -22,14 +22,37 @@ for (var i = 0; i < metadata.count; i++) {
 
 page_composition = util.getPageComposition(paint_contents)
 
+var maxWidth = maxHeight = 0
+page_composition.forEach(log => {
+    log.forEach(m => {
+        if (m.region.right > maxWidth) maxWidth = m.region.right
+        if (m.region.bottom > maxHeight) maxHeight = m.region.bottom
+    })
+})
+
 app.on('ready', () => {
     window = new BrowserWindow({
         title: 'Visualizing Paint Content',
         webPreferences: { nodeIntegration: true }
     })
-    window.loadFile('viz.html')
+    window.loadFile('index.html')
 })
 
-ipcMain.on("asynchronous-message", async(event, arg) => {
-    
+ipcMain.on("asynchronous-message", async (event, arg) => {
+    switch (arg.name) {
+        case "START":
+            event.reply('asynchronous-reply', {
+                name: "START",
+                value: { maxWidth, maxHeight, count: metadata.count }
+            })
+            break
+        case "CONTENT":
+            index = arg.index
+            if (index < page_composition.length && page_composition[index]) {
+                page_composition[index].forEach(m => {
+                    event.reply('asynchronous-reply', { name: "CONTENT", method: m })
+                })
+            }
+            break
+    }
 })
