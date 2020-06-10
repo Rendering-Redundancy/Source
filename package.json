@@ -1,0 +1,24 @@
+{
+  "name": "rr-source",
+  "version": "1.0.0",
+  "description": "The source code and data in the study of redundant rendering.",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Rendering-Redundancy/Source.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Rendering-Redundancy/Source/issues"
+  },
+  "homepage": "https://github.com/Rendering-Redundancy/Source#readme",
+  "dependencies": {
+    "crypto": "^1.0.1",
+    "delay": "^4.3.0",
+    "puppeteer": "^3.3.0"
+  }
+}
