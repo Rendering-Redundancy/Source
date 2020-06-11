@@ -2,3 +2,5 @@ node_modules/
 
 src/local/
 src/traces/
+
+data/batch/*
