@@ -17,7 +17,7 @@ var optionN = {
         up: 300
     },
     // timelimit: 20,          // the time limit (in second) for navigation.
-    // mode: 'simple'          // simple mode: do not capture DOM snapshot or paint log.
+    mode: 'simple'          // simple mode: do not capture DOM snapshot or paint log.
 }
 
 // Batch navigate with a list of URLs.

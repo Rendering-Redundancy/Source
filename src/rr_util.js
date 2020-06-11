@@ -496,22 +496,15 @@ async function navigate(opt) {
 
     client.on("LayerTree.layerPainted", params => {
         var now = Date.now()
-        console.log('paint')
-        // In simple mode, DOM snapshots and paint logs are not captured.
-        if (opt.hasOwnProperty('mode') && opt.mode === 'simple') {
-            metadata.times.paint.push(now)
-        }
-        // Otherwise, capturing is dispatched with frequency limit.
-        else {
-            if (now - lastEventTimestamp > 50) {
-                count += 1
-                lastEventTimestamp = now
-                metadata.times.paint.push(now)
 
-                if (monitor) {
-                    monitor.emit('dom', { client, count })
-                    monitor.emit('paint', { client, params, count })
-                }
+        if (now - lastEventTimestamp > 50) {
+            count += 1
+            lastEventTimestamp = now
+            metadata.times.paint.push(now)
+
+            if (!opt.hasOwnProperty('mode') && monitor) {
+                monitor.emit('dom', { client, count })
+                monitor.emit('paint', { client, params, count })
             }
         }
     })
@@ -519,6 +512,8 @@ async function navigate(opt) {
     page.on('load', async () => {
         console.log('Page loaded.')
         metadata.load_time = Date.now()
+
+        await page.tracing.stop();
 
         if (!opt.hasOwnProperty('timelimit')) {
             await delay(1000)
@@ -557,6 +552,8 @@ async function navigate(opt) {
             }
         }, 500)
     }
+
+    await page.tracing.start({ path: `${folder}/trace.json` });
 
     console.log(`Navigation started for ${url}`)
     metadata.start_time = Date.now()
