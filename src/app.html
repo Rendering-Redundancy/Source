@@ -32,9 +32,7 @@
 
         let count;
 
-        ipcRenderer.send('asynchronous-message', {
-            name: "START"
-        });
+        ipcRenderer.send('asynchronous-message', { name: "START" });
 
         ipcRenderer.on('asynchronous-reply', (event, arg) => {
             // console.log(arg);

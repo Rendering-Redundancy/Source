@@ -1,37 +1,54 @@
 const fs = require('fs')
 const util = require('./rr_util')
 
-var options = {
-    task: 'N',      // N (navigation), C (computation), B (batch).
-    folder: 'tmp',  // Where output files are (to be) stored.
+// Compute the redundancy using recorded data.
+var optionC = {
+    task: 'C',
+    folder: 'tmp'
+}
 
-    // Following attributes are applied when task === 'N'.
-    url: 'https://www.qq.com',
+// Navigate with a single URL.
+var optionN = {
+    task: 'N',
+    folder: 'tmp',
+    url: 'http://localhost:8000',
     emu: {
-        down: 300,        // Download bandwidth in KB.
-        up: 300         // Upload bandwidth in KB.
+        down: 100,
+        up: 300
+    },
+    // timelimit: 20,          // the time limit (in second) for navigation.
+    // mode: 'simple'          // simple mode: do not capture DOM snapshot or paint log.
+}
+
+// Batch navigate with a list of URLs.
+var optionB = {
+    task: 'B',
+    folder: 'tmp',
+    urls: [
+        'https://www.baidu.com',
+        'https://www.qq.com',
+        'https://www.163.com',
+        'https://www.taobao.com',
+        'https://www.jd.com',
+        'https://www.hao123.com',
+        'https://weibo.com/'
+    ],
+    index: 0,
+    emu: {
+        down: 300,
+        up: 300
     }
 }
+
+var options = optionN
 
 process.on('unhandledRejection', () => { })
 process.on('uncaughtException', () => { })
 process.on('exit', () => { })
 
-if (options.task === 'N') {
-    if (options.hasOwnProperty('emu')) {
-        util.navigate(options.url, options.folder, options.emu)
-    }
-    else {
-        util.navigate(options.url, options.folder)
-    }
-}
-else if (options.task === 'B') {
-    
-}
-else {
+if (options.task === 'C') {
     var metadata = JSON.parse(fs.readFileSync(`${options.folder}/metadata.json`))
     var paints = []
-    var compos = []
 
     console.log('Extracting paint content...')
     var start = Date.now()
@@ -52,7 +69,7 @@ else {
 
     console.log('Computing page composition...')
     start = Date.now()
-    compos = util.getPageComposition(paints)
+    var compos = util.getPageComposition(paints)
     end = Date.now()
     console.log(`Finished in ${end - start} ms.`)
 
@@ -64,4 +81,7 @@ else {
 
     fs.writeFileSync(`${options.folder}/redundancy.json`, JSON.stringify({ result }))
     console.log(`Result saved in ${options.folder}/redundancy.json.`)
+}
+else {
+    util.navigate(options)
 }

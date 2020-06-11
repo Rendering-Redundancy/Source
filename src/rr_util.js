@@ -32,7 +32,7 @@ function indexToValue(idx, list) {
     }
 }
 
-function parseDomSnapshot(dom) {
+function parseDomSnapshot(dom, mode) {
     var documents = dom.documents
     var stringReference = dom.strings
 
@@ -46,12 +46,13 @@ function parseDomSnapshot(dom) {
         for (var j = 0; j < d.nodes.parentIndex.length; j++) {
             var index = j
             var parentIndex = d.nodes.parentIndex[j]
+            var backendId = d.nodes.backendNodeId[j]
             var nodeType = nodeTypes[d.nodes.nodeType[j]]
             var nodeName = indexToValue(d.nodes.nodeName[j], stringReference)
             var nodeValue = indexToValue(d.nodes.nodeValue[j], stringReference)
             var attributes = indexToValue(d.nodes.attributes[j], stringReference)
 
-            parsedNodes[i].push({ index, parentIndex, nodeType, nodeName, nodeValue, attributes })
+            parsedNodes[i].push({ index, backendId, parentIndex, nodeType, nodeName, nodeValue, attributes })
         }
 
         for (var j = 0; j < d.nodes.textValue.index.length; j++) {
@@ -89,41 +90,44 @@ function parseDomSnapshot(dom) {
             })
         }
 
-        parsedNodes[i].forEach(n => {
-            if (n.inLayout) {
-                if (textTypes.indexOf(n.nodeType) !== -1) {
-                    if (n.segments) {
-                        n.segments.forEach(seg => {
+        if (mode && moed === 'simple') {
+            parsedNodes[i].forEach(n => {
+                if (n.inLayout) {
+                    if (textTypes.indexOf(n.nodeType) !== -1) {
+                        if (n.segments) {
+                            n.segments.forEach(seg => {
+                                texts.push({
+                                    value: seg.value,
+                                    bounds: seg.bounds,
+                                    fontSize: n.styles[0],
+                                    fontFamily: n.styles[1]
+                                })
+                            })
+                        } else {
                             texts.push({
-                                value: seg.value,
-                                bounds: seg.bounds,
+                                value: n.text || n.nodeValue || n.inputValue || n.textValue,
+                                bounds: n.bounds,
                                 fontSize: n.styles[0],
                                 fontFamily: n.styles[1]
                             })
-                        })
-                    } else {
-                        texts.push({
-                            value: n.text || n.nodeValue || n.inputValue || n.textValue,
-                            bounds: n.bounds,
-                            fontSize: n.styles[0],
-                            fontFamily: n.styles[1]
+                        }
+                    } else if (n.currentSourceURL || (n.styles[2] && n.styles[2] !== 'none')) {
+                        var source = n.currentSourceURL || n.styles[2]
+                        if (source.startsWith('url')) {
+                            source = source.substring(5, source.length - 2)
+                        }
+                        images.push({
+                            source,
+                            bounds: n.bounds
                         })
                     }
-                } else if (n.currentSourceURL || (n.styles[2] && n.styles[2] !== 'none')) {
-                    var source = n.currentSourceURL || n.styles[2]
-                    if (source.startsWith('url')) {
-                        source = source.substring(5, source.length - 2)
-                    }
-                    images.push({
-                        source,
-                        bounds: n.bounds
-                    })
                 }
-            }
-        })
+            })
+        }
     }
 
-    return { texts, images }
+    if (mode && mode === 'simple') return { texts, images }
+    else return parsedNodes
 }
 
 function parsePaintLog(dom, paint) {
@@ -352,12 +356,11 @@ function computeRedundancy(logs, compos) {
     return result
 }
 
-// url: where the browser navigates to 
-// folder: the output folder for dom snapshot and paint log files
-// emu: network emulation, {down, up} bandwidth in KB.
-async function navigate(url, folder, emu) {
-    metadata = {
-        url: url,
+async function navigate(opt) {
+    if (opt.task === 'B' && opt.index >= opt.urls.length) return
+
+    var metadata = {
+        url: opt.task === 'N' ? opt.url : opt.urls[opt.index],
         count: 0,
         start_time: 0,
         load_time: 0,
@@ -375,17 +378,38 @@ async function navigate(url, folder, emu) {
     var requests = {}
 
     // We assume here folder does not end with '/'.
-    if (!fs.existsSync(folder)) {
-        fs.mkdirSync(folder)
-    } else {
-        var files = fs.readdirSync(folder)
-        files.forEach((f, i) => {
-            var filename = folder + "/" + f
-            fs.unlinkSync(filename)
-        })
+    if (!fs.existsSync(opt.folder)) {
+        fs.mkdirSync(opt.folder)
+    }
+    else {
+        if (opt.task === 'N') {
+            var files = fs.readdirSync(opt.folder)
+            files.forEach((f, i) => {
+                var filename = `${opt.folder}/${f}`
+                fs.unlinkSync(filename)
+            })
+        }
+        else {
+            if (!fs.existsSync(`${opt.folder}/${opt.index}/`)) {
+                fs.mkdirSync(`${opt.folder}/${opt.index}/`)
+            }
+            else {
+                var files = fs.readdirSync(`${opt.folder}/${opt.index}/`)
+                files.forEach((f, i) => {
+                    var filename = `${opt.folder}/${opt.index}/${f}`
+                    fs.unlinkSync(filename)
+                })
+            }
+        }
     }
 
-    var browser = await puppeteer.launch()
+    var url = opt.task === 'N' ? opt.url : opt.urls[opt.index]
+    var folder = opt.task === 'N' ? opt.folder : `${opt.folder}/${opt.index}`
+
+    var browser = await puppeteer.launch({
+        headless: false,
+        executablePath: "C:/Resources/chromium/chrome.exe"
+    })
     var page = await browser.newPage()
     var client = await page.target().createCDPSession()
 
@@ -400,12 +424,12 @@ async function navigate(url, folder, emu) {
     await client.send("LayerTree.enable")
     await client.send("Network.enable")
 
-    if (emu) {
+    if (opt.emu) {
         await client.send("Network.emulateNetworkConditions", {
             offline: false,
             latency: 300,
-            downloadThroughput: emu.down * 1024,
-            uploadThroughput: emu.up * 1024
+            downloadThroughput: opt.emu.down * 1024,
+            uploadThroughput: opt.emu.up * 1024
         })
     }
 
@@ -472,25 +496,44 @@ async function navigate(url, folder, emu) {
 
     client.on("LayerTree.layerPainted", params => {
         var now = Date.now()
-        if (now - lastEventTimestamp > 50) {
-            count += 1
-            lastEventTimestamp = now
+        console.log('paint')
+        // In simple mode, DOM snapshots and paint logs are not captured.
+        if (opt.hasOwnProperty('mode') && opt.mode === 'simple') {
             metadata.times.paint.push(now)
+        }
+        // Otherwise, capturing is dispatched with frequency limit.
+        else {
+            if (now - lastEventTimestamp > 50) {
+                count += 1
+                lastEventTimestamp = now
+                metadata.times.paint.push(now)
 
-            if (monitor) {
-                monitor.emit('dom', { client, count })
-                monitor.emit('paint', { client, params, count })
+                if (monitor) {
+                    monitor.emit('dom', { client, count })
+                    monitor.emit('paint', { client, params, count })
+                }
             }
         }
     })
 
-    page.on('load', () => {
+    page.on('load', async () => {
         console.log('Page loaded.')
         metadata.load_time = Date.now()
+
+        if (!opt.hasOwnProperty('timelimit')) {
+            await delay(1000)
+            stopNavigation()
+        }
     })
 
-    // Stop capturing new data as time exceeds 20 seconds.
-    setTimeout(function () {
+    if (opt.hasOwnProperty('timelimit')) {
+        // Stop capturing new data as time exceeds opt.timelimit
+        setTimeout(function () {
+            stopNavigation()
+        }, opt.timelimit * 1000)
+    }
+
+    async function stopNavigation() {
         monitor = undefined
 
         // Actually stop navigation when all the data are captured.
@@ -503,11 +546,19 @@ async function navigate(url, folder, emu) {
 
                 metadata.count = count
                 fs.writeFileSync(`${folder}/metadata.json`, JSON.stringify(metadata))
-                console.log(`Navigation closed with ${count} paint events.`)
+                console.log(`Navigation closed with ${count} paint events.\n`)
+
+                if (opt.task === 'B') {
+                    await delay(1000)
+
+                    opt.index += 1
+                    navigate(opt)
+                }
             }
         }, 500)
-    }, 20000)
+    }
 
+    console.log(`Navigation started for ${url}`)
     metadata.start_time = Date.now()
     await page.goto(url)
 }

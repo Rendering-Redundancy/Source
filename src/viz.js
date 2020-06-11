@@ -35,7 +35,7 @@ app.on('ready', () => {
         title: 'Visualizing Paint Content',
         webPreferences: { nodeIntegration: true }
     })
-    window.loadFile('index.html')
+    window.loadFile('app.html')
 })
 
 ipcMain.on("asynchronous-message", async (event, arg) => {
