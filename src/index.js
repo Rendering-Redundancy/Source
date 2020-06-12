@@ -12,12 +12,21 @@ var optionN = {
     task: 'N',
     folder: 'tmp',
     url: 'http://localhost:8000',
+
+    // Specify the emulated network condition.
     emu: {
-        down: 100,
-        up: 300
+        delay: 100,         // Delay in milliseconds.
+        down: 300,          // Download bandwidth in KB.
+        up: 300             // Upload bandwidth in KB.
     },
-    // timelimit: 20,          // the time limit (in second) for navigation.
-    mode: 'simple'          // simple mode: do not capture DOM snapshot or paint log.
+
+    // Time limit (in seconds) for navigation.
+    timelimit: 10,
+ 
+    // Mode simple: only record timeticks of paint/network events.
+    // Mode tracing: only record tracing result (in folder/trace.json).
+    // Mode default: record tracing result, DOM snapshots and paint logs.
+    mode: 'tracing'
 }
 
 // Batch navigate with a list of URLs.
@@ -37,7 +46,8 @@ var optionB = {
     emu: {
         down: 300,
         up: 300
-    }
+    },
+    mode: 'default'
 }
 
 var options = optionN

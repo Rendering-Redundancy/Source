@@ -427,7 +427,7 @@ async function navigate(opt) {
     if (opt.emu) {
         await client.send("Network.emulateNetworkConditions", {
             offline: false,
-            latency: 300,
+            latency: opt.emu.delay,
             downloadThroughput: opt.emu.down * 1024,
             uploadThroughput: opt.emu.up * 1024
         })
@@ -502,7 +502,7 @@ async function navigate(opt) {
             lastEventTimestamp = now
             metadata.times.paint.push(now)
 
-            if (!opt.hasOwnProperty('mode') && monitor) {
+            if (opt.mode === 'default' && monitor) {
                 monitor.emit('dom', { client, count })
                 monitor.emit('paint', { client, params, count })
             }
@@ -512,8 +512,6 @@ async function navigate(opt) {
     page.on('load', async () => {
         console.log('Page loaded.')
         metadata.load_time = Date.now()
-
-        await page.tracing.stop();
 
         if (!opt.hasOwnProperty('timelimit')) {
             await delay(1000)
@@ -529,7 +527,12 @@ async function navigate(opt) {
     }
 
     async function stopNavigation() {
+        monitor.removeAllListeners()
         monitor = undefined
+
+        if (opt.mode !== 'simple') {
+            await page.tracing.stop()
+        }
 
         // Actually stop navigation when all the data are captured.
         var interval = setInterval(async function () {
@@ -553,7 +556,9 @@ async function navigate(opt) {
         }, 500)
     }
 
-    await page.tracing.start({ path: `${folder}/trace.json` });
+    if (opt.mode !== 'simple') {
+        await page.tracing.start({ path: `${folder}/trace.json` });
+    }
 
     console.log(`Navigation started for ${url}`)
     metadata.start_time = Date.now()
