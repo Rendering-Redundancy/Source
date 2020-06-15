@@ -3,4 +3,7 @@ node_modules/
 src/local/
 src/traces/
 
+src/baidu.com/
+src/163.com/
+
 data/batch/*

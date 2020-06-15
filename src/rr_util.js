@@ -449,7 +449,7 @@ async function navigate(opt) {
             console.log(`DOM\t ${args.count} captured.`)
         }
         catch (e) {
-
+            console.log(e)
         }
         unfinishedSnapshot -= 1
     })
@@ -458,15 +458,17 @@ async function navigate(opt) {
         unfinishedPaintLog += 1
         try {
             var layer = await args.client.send("LayerTree.makeSnapshot", { layerId: args.params.layerId })
-            var data = await args.client.send("LayerTree.snapshotCommandLog", { snapshotId: layer.snapshotId })
-            fs.writeFileSync(`${folder}/paint-${args.count}.json`, JSON.stringify(data))
+            // var data = await args.client.send("LayerTree.snapshotCommandLog", { snapshotId: layer.snapshotId })
+            var data = await args.client.send('LayerTree.replaySnapshot', { snapshotId: layer.snapshotId })
+            data = data.dataURL.split(';base64,').pop()
+            fs.writeFileSync(`${folder}/${args.count}.png`, data, { encoding: 'base64' })
             layer = undefined
             data = undefined
 
             console.log(`Paint\t ${args.count} captured.`)
         }
         catch (e) {
-
+            console.log(e)
         }
         unfinishedPaintLog -= 1
     })

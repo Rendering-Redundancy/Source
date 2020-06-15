@@ -1,6 +1,6 @@
 const fs = require('fs')
 
-data = JSON.parse(fs.readFileSync('traces/trace-3imgs-300K.json'))
+data = JSON.parse(fs.readFileSync('163.com/trace.json'))
 
 id_total = 0
 id_count = 0

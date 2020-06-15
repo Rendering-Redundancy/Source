@@ -10,23 +10,23 @@ var optionC = {
 // Navigate with a single URL.
 var optionN = {
     task: 'N',
-    folder: 'tmp',
-    url: 'http://localhost:8000',
+    folder: '163.com',
+    url: 'https://www.163.com',
 
     // Specify the emulated network condition.
     emu: {
-        delay: 100,         // Delay in milliseconds.
+        delay: 300,         // Delay in milliseconds.
         down: 300,          // Download bandwidth in KB.
         up: 300             // Upload bandwidth in KB.
     },
 
     // Time limit (in seconds) for navigation.
-    timelimit: 10,
+    // timelimit: 10,
  
     // Mode simple: only record timeticks of paint/network events.
     // Mode tracing: only record tracing result (in folder/trace.json).
     // Mode default: record tracing result, DOM snapshots and paint logs.
-    mode: 'tracing'
+    mode: 'default'
 }
 
 // Batch navigate with a list of URLs.
