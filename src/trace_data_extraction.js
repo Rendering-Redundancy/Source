@@ -46,8 +46,15 @@ var task = {
     imageDecodeTask: { start: [], end: [] }
 }
 
+var tmp = []
+
 data.traceEvents.forEach(e => {
     switch (e.name) {
+        case "navigationStart":
+            // console.log(e.args.data.documentLoaderURL)
+            url = e.args.data.documentLoaderURL
+            if (url) tmp.push({ url, ts: e.ts })
+            break
         case "ParseHTML":
             if (e.ph === 'B') {
                 d = e.args.beginData
@@ -292,5 +299,8 @@ for (var i = 0; i < l; i++) {
     d.dur = task.imageDecodeTask.end[i].ts - d.ts
     workload.ImageDecodeTask.push(d)
 }
+
+tmp.sort((a, b) => { return a.ts - b.ts })
+console.log(tmp)
 
 fs.writeFileSync('workload.json', JSON.stringify(workload))
