@@ -462,6 +462,7 @@ async function navigate(opt) {
             var data = await args.client.send('LayerTree.replaySnapshot', { snapshotId: layer.snapshotId })
             data = data.dataURL.split(';base64,').pop()
             fs.writeFileSync(`${folder}/${args.count}.png`, data, { encoding: 'base64' })
+            
             layer = undefined
             data = undefined
 
