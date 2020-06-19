@@ -1,6 +1,8 @@
 const fs = require('fs')
 const merge = require('lodash.merge')
 
+// ts and dur are in microsecond granularity. 
+
 var data = JSON.parse(fs.readFileSync('163.com/trace.json'))
 
 var workload = {
@@ -46,14 +48,14 @@ var task = {
     imageDecodeTask: { start: [], end: [] }
 }
 
-var tmp = []
+var nav_times = []
 
 data.traceEvents.forEach(e => {
     switch (e.name) {
         case "navigationStart":
             // console.log(e.args.data.documentLoaderURL)
             url = e.args.data.documentLoaderURL
-            if (url) tmp.push({ url, ts: e.ts })
+            if (url) nav_times.push({ url, ts: e.ts })
             break
         case "ParseHTML":
             if (e.ph === 'B') {
@@ -300,7 +302,16 @@ for (var i = 0; i < l; i++) {
     workload.ImageDecodeTask.push(d)
 }
 
-tmp.sort((a, b) => { return a.ts - b.ts })
-console.log(tmp)
+nav_times.sort((a, b) => { return a.ts - b.ts })
+var navigation_start = nav_times[0].ts
+
+var keys = Object.keys(workload)
+for (var i = 0; i < keys.length; i++) {
+    var k = keys[i]
+    workload[k].forEach(e => {
+        e.ts = e.ts - navigation_start
+    })
+    workload[k].sort((a, b) => { return a.ts - b.ts })
+}
 
 fs.writeFileSync('workload.json', JSON.stringify(workload))

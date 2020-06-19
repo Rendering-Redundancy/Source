@@ -1,0 +1,60 @@
+<html>
+
+<head>
+    <title>Trace Visualization</title>
+</head>
+
+<body>
+    <script src="lib/jquery-3.5.1.js"></script>
+    <script src="lib/d3.v5.min.js"></script>
+    <script>
+        $.getJSON('workload.json', workload => {
+            var keys = Object.keys(workload);
+            var serial_workload = [];
+            var max_ts = 0;
+            for (var i = 0; i < keys.length; i++) {
+                var k = keys[i];
+                workload[k].forEach(d => {
+                    max_ts = Math.max(max_ts, d.ts);
+                    d.idx = i;
+                    serial_workload.push(d);
+                })
+            }
+
+            var svg = d3.select("body")
+                .append("svg")
+                .attr("width", Math.round(max_ts / 1000))  // 1ms=1px.
+                .attr("height", 30 * (keys.length + 1));
+
+            var labels = svg.selectAll('text')
+                .data(keys)
+                .enter()
+                .append("text")
+                .attr('x', 10)
+                .attr('y', (d, i) => 30 * (i + 1))
+                .text(d => d);
+
+            var bar = svg.selectAll("rect")
+                .data(serial_workload)
+                .enter()
+                .append("rect")
+                .attr("fill", d => d.hasOwnProperty('dur') ? "steelblue" : "green")
+                .attr('x', d => 250 + Math.round(d.ts / 1000))
+                .attr('y', d => 30 * d.idx + 10)
+                .attr("width", d => d.hasOwnProperty('dur') ? Math.round(d.dur / 1000) : 1)
+                .attr("height", 10)
+                .on("mouseover", function (d) {
+                    svg.append('text')
+                        .attr('id', `${keys[d.idx]}-${d.ts}`)
+                        .attr('x', 200 + Math.round(d.ts / 1000))
+                        .attr('y', 30 * (d.idx + 1) + 10)
+                        .text(`${keys[d.idx]} start: ${Math.round(d.ts / 1000)} dur: ${d.hasOwnProperty('dur') ? Math.round(d.dur / 1000) : 0}`);
+                })
+                .on("mouseout", function (d, i) {
+                    d3.select(`#${keys[d.idx]}-${d.ts}`).remove();
+                });
+        })
+    </script>
+</body>
+
+</html>
