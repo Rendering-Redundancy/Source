@@ -1,5 +1,6 @@
 const fs = require('fs')
 const { privateDecrypt } = require('crypto')
+const { decode } = require('punycode')
 
 data = JSON.parse(fs.readFileSync('163.com/trace.json'))
 
@@ -18,8 +19,7 @@ function getRasterTime() {
             if (entry.name === 'Decode Image') {
                 id_total += entry.dur
                 id_count += 1
-            }
-            if (entry.name === 'RasterTask') {
+            } else if (entry.name === 'RasterTask') {
                 if (entry.ph === 'B')
                     raster_begin.push(entry.ts)
                 else {
@@ -35,9 +35,10 @@ function getRasterTime() {
         raster_total += raster_end[i] - raster_begin[i]
     }
 
-    console.log(id_count, len)
-    console.log(id_total / 1000, 'ms')
-    console.log(raster_total / 1000, 'ms')
+    // console.log(id_count, len)
+    // console.log(id_total / 1000, 'ms')
+    // console.log(raster_total / 1000, 'ms')
+    return [id_count, len, id_total / 1000, raster_total / 1000];
 }
 
 function getAllMethods() {
@@ -91,7 +92,19 @@ function getDrawFrameTimes() {
     console.log(period)
 }
 
-getAllMethods()
-// getThreadNames()
-// getRasterThreadId()
-// getDrawFrameTimes()
+function getTaskDurationFromWorkload(filename) {
+    var workload = JSON.parse(fs.readFileSync(filename))
+    var decode_image_dur = 0, layout_dur = 0
+
+    workload.Layout.forEach(d => {
+        layout_dur += d.dur / 1000
+    })
+
+    workload.DecodeImage.forEach(d => {
+        decode_image_dur += d.dur / 1000
+    })
+
+    console.log(layout_dur, decode_image_dur)
+}
+
+getTaskDurationFromWorkload('workload.json')

@@ -2,32 +2,38 @@
 
 <head>
     <title>Trace Visualization</title>
+    <link rel="shortcut icon" href="#" />
+    <style>
+        line {
+            stroke: wheat;
+        }
+    </style>
 </head>
 
 <body>
     <script src="lib/jquery-3.5.1.js"></script>
     <script src="lib/d3.v5.min.js"></script>
     <script>
-        $.getJSON('workload.json', workload => {
-            var keys = Object.keys(workload);
-            var serial_workload = [];
+        $.getJSON('workloads.json', data => {
             var max_ts = 0;
-            for (var i = 0; i < keys.length; i++) {
-                var k = keys[i];
-                workload[k].forEach(d => {
-                    max_ts = Math.max(max_ts, d.ts);
-                    d.idx = i;
-                    serial_workload.push(d);
-                })
-            }
+            var tids = new Set();
+
+            data.workloads.forEach(e => {
+                max_ts = Math.max(max_ts, e.ts)
+                tids.add(e.tid);
+            })
+            data.events.forEach(e => {
+                max_ts = Math.max(max_ts, e.ts)
+            })
+            tids = Array.from(tids);
 
             var svg = d3.select("body")
                 .append("svg")
-                .attr("width", Math.round(max_ts / 1000))  // 1ms=1px.
-                .attr("height", 30 * (keys.length + 1));
+                .attr("width", Math.round(max_ts / 1000) + 10)  // 1ms=1px.
+                .attr("height", 30 * (tids.length + 1));
 
             var labels = svg.selectAll('text')
-                .data(keys)
+                .data(tids)
                 .enter()
                 .append("text")
                 .attr('x', 10)
@@ -35,24 +41,33 @@
                 .text(d => d);
 
             var bar = svg.selectAll("rect")
-                .data(serial_workload)
+                .data(data.workloads)
                 .enter()
                 .append("rect")
-                .attr("fill", d => d.hasOwnProperty('dur') ? "steelblue" : "green")
-                .attr('x', d => 250 + Math.round(d.ts / 1000))
-                .attr('y', d => 30 * d.idx + 10)
-                .attr("width", d => d.hasOwnProperty('dur') ? Math.round(d.dur / 1000) : 1)
+                .attr("fill", "steelblue")
+                .attr('x', d => 120 + Math.round(d.ts / 1000))
+                .attr('y', d => 30 * tids.indexOf(d.tid) + 10)
+                .attr("width", d => Math.round(d.dur / 1000))
                 .attr("height", 10)
                 .on("mouseover", function (d) {
                     svg.append('text')
-                        .attr('id', `${keys[d.idx]}-${d.ts}`)
-                        .attr('x', 200 + Math.round(d.ts / 1000))
-                        .attr('y', 30 * (d.idx + 1) + 10)
-                        .text(`${keys[d.idx]} start: ${Math.round(d.ts / 1000)} dur: ${d.hasOwnProperty('dur') ? Math.round(d.dur / 1000) : 0}`);
+                        .attr('id', `${d.type}-${d.tid}-${d.ts}`)
+                        .attr('x', 100 + Math.round(d.ts / 1000))
+                        .attr('y', 30 * (tids.indexOf(d.tid) + 1) + 10)
+                        .text(`${d.type} start: ${Math.round(d.ts / 1000)} dur: ${d.hasOwnProperty('dur') ? Math.round(d.dur / 1000) : 0}`);
                 })
                 .on("mouseout", function (d, i) {
-                    d3.select(`#${keys[d.idx]}-${d.ts}`).remove();
+                    d3.select(`#${d.type}-${d.tid}-${d.ts}`).remove();
                 });
+
+            var vlines = svg.selectAll('line')
+                .data(data.events.filter(d => { return d.type === 'DrawFrame' }))
+                .enter()
+                .append('line')
+                .attr('x1', d => 120 + Math.round(d.ts / 1000))
+                .attr('x2', d => 120 + Math.round(d.ts / 1000))
+                .attr('y1', 10)
+                .attr('y2', 30 * (tids.length + 1));
         })
     </script>
 </body>
