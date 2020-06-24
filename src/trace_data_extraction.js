@@ -2,41 +2,40 @@ const fs = require('fs')
 const merge = require('lodash.merge')
 
 // ts and dur are in microsecond granularity. 
+const TASK_FORMAT = {
+    ParseHTML: [],  // B->E, args.data{frame, url, startLine, endLine}
+    ParseAuthorStyleSheet: [], // ts, dur, args.data.styleSheetUrl
+    ScheduleStyleRecaculation: [], // I, ts, args.data.frame
+    EvaluateScript: [], // ts, dur, args.data.{url, lineNumber, columnNumber, frame}
+    Layout: [], // B->E, args.beginData, args.endData
+    InvalidateLayout: [], // I, ts, args.data.frame
+    Paint: [], // ts, dur, args.datat.{frame, clip, nodeId, layerId}
+    PaintImage: [], // ts, dur, args.data.{nodeId, url, x, y, width, heigh, srcWidth, srcHeight}
 
-var data = JSON.parse(fs.readFileSync('baidu.com/trace.json'))
+    ResourceSendRequest: [], // I, ts, args.data.{requestId, frame, url, ... }
+    ResourceReceivedData: [], // I, ts, args.data.{requestId, frame, encodedDataLength}
+    ResourceReceiveResponse: [], // I, ts, args.data.{requestId, frame, statusCode, ... }
+    ResourceFinish: [], // I, ts, args.data.{requestId, didFail, encodedDataLength, ... }
+    ResourceChangePriority: [], // ts, dur, args.data.requestId
 
-// var workload = {
-//     ParseHTML: [],  // B->E, args.data{frame, url, startLine, endLine}
-//     ParseAuthorStyleSheet: [], // ts, dur, args.data.styleSheetUrl
-//     // ScheduleStyleRecaculation: [], // I, ts, args.data.frame
-//     EvaluateScript: [], // ts, dur, args.data.{url, lineNumber, columnNumber, frame}
-//     Layout: [], // B->E, args.beginData, args.endData
-//     // InvalidateLayout: [], // I, ts, args.data.frame, I
-//     Paint: [], // ts, dur, args.data.{frame, clip, nodeId, layerId}
-//     PaintImage: [], // ts, dur, args.data.{nodeId, url, x, y, width, height, srcWidth, srcHeight}
+    UpdateLayer: [], // B->E, args.{layerId, layerTreeId}
+    UpdateLayerTree: [], // ts, dur, args.data.frame
+    UpdateLayoutTree: [], // B->E, args.{beginData.{frame, stackTrace}, elementCount}
+    ActivateLayerTree: [], // I, ts, args.{layerTreeId, frameId}
+    CompositeLayers: [], // B->E, args.layerTreeId
 
-//     ResourceSendRequest: [], // I, ts, args.data.{requestId, frame, url, ... }
-//     ResourceReceivedData: [], // I, ts, args.data.{requestId, frame, encodedDataLength}
-//     ResourceReceiveResponse: [], // I, ts, args.data.{requestId, frame, statusCode, ... }
-//     // ResourceFinish: [], // I, ts, args.data.{requestId, didFail, encodedDataLength, ... }
-//     // ResourceChangePriority: [], // ts, dur, args.data.requestId
+    BeginFrame: [], // I, ts, args.layerTreeId
+    RasterTask: [], // B->E, args.tileData.{tileId.id_ref, tileResolution, sourceFrameNumber, layerId}
+    ImageDecodeTask: [], // B->E, args.pixelRefId
+    DecodeImage: [], // ts, dur, args.imageType
+    DecodeLazyPixelRef: [], // ts, dur, args.LazyPixelRef
+    DrawLazyPixelRef: [], // I, ts, args.lazypixelref
+    DrawFrame: [], // I, ts, args.layerTreeId
+    FrameCommittedInBrowser: [], // I, ts, args.data.{frame, url, ... }
+    FrameStartedLoading: [], // I, ts, args.frame
+}
 
-//     UpdateLayer: [], // B->E, args.{layerId, layerTreeId}
-//     UpdateLayerTree: [], // ts, dur, args.data.frame
-//     UpdateLayoutTree: [], // B->E, args.{beginData.{frame, stackTrace}, elementCount}
-//     // ActivateLayerTree: [], // I, ts, args.{layerTreeId, frameId}
-//     CompositeLayers: [], // B->E, args.layerTreeId
-
-//     BeginFrame: [], // I, ts, args.layerTreeId
-//     RasterTask: [], // B->E, args.tileData.{tileId.id_ref, tileResolution, sourceFrameNumber, layerId}
-//     ImageDecodeTask: [], // B->E, args.pixelRefId
-//     DecodeImage: [], // ts, dur, args.imageType
-//     DecodeLazyPixelRef: [], // ts, dur, args.LazyPixelRef
-//     // DrawLazyPixelRef: [], // I, ts, args.lazypixelref
-//     DrawFrame: [], // I, ts, args.layerTreeId
-//     // FrameCommittedInBrowser: [], // I, ts, args.data.{frame, url, ... }
-//     // FrameStartedLoading: [], // I, ts, args.frame
-// }
+var data = JSON.parse(fs.readFileSync('trace.json'))
 
 var workloads = [], events = []
 
@@ -82,6 +81,22 @@ data.traceEvents.forEach(e => {
         case "EvaluateScript":
             d = e.args.data
             d.type = "EvaluateScript"
+            d.tid = e.tid
+            d.ts = e.ts
+            d.dur = e.dur
+            workloads.push(d)
+            break
+        case "FunctionCall":
+            d = e.args.data
+            d.type = "FunctionCall"
+            d.tid = e.tid
+            d.ts = e.ts
+            d.dur = e.dur
+            workloads.push(d)
+            break
+        case "HitTest":
+            d = e.args.endData
+            d.type = "HitTest"
             d.tid = e.tid
             d.ts = e.ts
             d.dur = e.dur

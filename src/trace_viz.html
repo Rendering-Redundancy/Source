@@ -60,16 +60,16 @@
                     d3.select(`#${d.type}-${d.tid}-${d.ts}`).remove();
                 });
 
-            var vlines = svg.selectAll('line')
-                .data(data.events.filter(d => { return d.type === 'DrawFrame' }))
-                .enter()
-                .append('line')
-                .attr('x1', d => 120 + Math.round(d.ts / 1000))
-                .attr('x2', d => 120 + Math.round(d.ts / 1000))
-                .attr('y1', 10)
-                .attr('y2', 30 * (tids.length + 1));
+            // var vlines = svg.selectAll('line')
+            //     .data(data.events.filter(d => { return d.type === 'BeginFrame' }))
+            //     .enter()
+            //     .append('line')
+            //     .attr('x1', d => 120 + Math.round(d.ts / 1000))
+            //     .attr('x2', d => 120 + Math.round(d.ts / 1000))
+            //     .attr('y1', 10)
+            //     .attr('y2', 30 * (tids.length + 1));
         })
-    </script>
+    </script>   
 </body>
 
 </html>
