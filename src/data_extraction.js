@@ -58,16 +58,22 @@ data.traceEvents.forEach(e => {
             if (url) nav_times.push({ url, ts: e.ts, tid: e.tid })
             break
         case "ParseHTML":
-            if (e.ph === 'B') {
-                d = e.args.beginData
-                d.ts = e.ts
-                d.tid = e.tid
-                task.parseHTML.start.push(d)
-            } else {
-                d = e.args.endData
-                d.ts = e.ts
-                task.parseHTML.end.push(d)
-            }
+            // if (e.ph === 'B') {
+            //     d = e.args.beginData
+            //     d.ts = e.ts
+            //     d.tid = e.tid
+            //     task.parseHTML.start.push(d)
+            // } else {
+            //     d = e.args.endData
+            //     d.ts = e.ts
+            //     task.parseHTML.end.push(d)
+            // }
+            d = e.args
+            d.ts = e.ts
+            d.tid = e.tid
+            d.dur = e.dur
+            d.type = 'ParseHTML'
+            workloads.push(d)
             break
         case "ParseAuthorStyleSheet":
             workloads.push({
@@ -103,16 +109,22 @@ data.traceEvents.forEach(e => {
             workloads.push(d)
             break
         case "Layout":
-            if (e.ph === 'B') {
-                d = e.args.beginData
-                d.tid = e.tid
-                d.ts = e.ts
-                task.layout.start.push(d)
-            } else {
-                d = e.args.endData
-                d.ts = e.ts
-                task.layout.end.push(d)
-            }
+            // if (e.ph === 'B') {
+            //     d = e.args.beginData
+            //     d.tid = e.tid
+            //     d.ts = e.ts
+            //     task.layout.start.push(d)
+            // } else {
+            //     d = e.args.endData
+            //     d.ts = e.ts
+            //     task.layout.end.push(d)
+            // }
+            d = e.args
+            d.ts = e.ts
+            d.tid = e.tid
+            d.dur = e.dur
+            d.type = 'Layout'
+            workloads.push(d)
             break
         case "Paint":
             d = e.args.data
@@ -154,14 +166,20 @@ data.traceEvents.forEach(e => {
             break
 
         case "UpdateLayer":
-            if (e.ph === 'B') {
-                d = e.args
-                d.tid = e.tid
-                d.ts = e.ts
-                task.updateLayer.start.push(d)
-            } else {
-                task.updateLayer.end.push({ ts: e.ts })
-            }
+            // if (e.ph === 'B') {
+            //     d = e.args
+            //     d.tid = e.tid
+            //     d.ts = e.ts
+            //     task.updateLayer.start.push(d)
+            // } else {
+            //     task.updateLayer.end.push({ ts: e.ts })
+            // }
+            d = e.args
+            d.ts = e.ts
+            d.tid = e.tid
+            d.dur = e.dur
+            d.type = 'UpdateLayer'
+            workloads.push(d)
             break
         case "UpdateLayerTree":
             d = e.args.data
@@ -172,26 +190,38 @@ data.traceEvents.forEach(e => {
             workloads.push(d)
             break
         case "UpdateLayoutTree":
-            if (e.ph === 'B') {
-                d = e.args.beginData
-                d.tid = e.tid
-                d.ts = e.ts
-                task.updateLayoutTree.start.push(d)
-            } else {
-                d = e.args
-                d.ts = e.ts
-                task.updateLayoutTree.end.push(d)
-            }
+            // if (e.ph === 'B') {
+            //     d = e.args.beginData
+            //     d.tid = e.tid
+            //     d.ts = e.ts
+            //     task.updateLayoutTree.start.push(d)
+            // } else {
+            //     d = e.args
+            //     d.ts = e.ts
+            //     task.updateLayoutTree.end.push(d)
+            // }
+            d = e.args
+            d.ts = e.ts
+            d.tid = e.tid
+            d.dur = e.dur
+            d.type = 'UpdateLayoutTree'
+            workloads.push(d)
             break
         case "CompositeLayers":
-            if (e.ph === 'B') {
-                d = e.args
-                d.tid = e.tid
-                d.ts = e.ts
-                task.compositeLayers.start.push(d)
-            } else {
-                task.compositeLayers.end.push({ ts: e.ts })
-            }
+            // if (e.ph === 'B') {
+            //     d = e.args
+            //     d.tid = e.tid
+            //     d.ts = e.ts
+            //     task.compositeLayers.start.push(d)
+            // } else {
+            //     task.compositeLayers.end.push({ ts: e.ts })
+            // }
+            d = e.args
+            d.ts = e.ts
+            d.tid = e.tid
+            d.dur = e.dur
+            d.type = 'CompositeLayers'
+            workloads.push(d)
             break
 
         case "BeginFrame":
@@ -202,24 +232,36 @@ data.traceEvents.forEach(e => {
             events.push(d)
             break
         case "RasterTask":
-            if (e.ph === 'B') {
-                d = e.args.tileData
-                d.tid = e.tid
-                d.ts = e.ts
-                task.rasterTask.start.push(d)
-            } else {
-                task.rasterTask.end.push({ ts: e.ts })
-            }
+            // if (e.ph === 'B') {
+            //     d = e.args.tileData
+            //     d.tid = e.tid
+            //     d.ts = e.ts
+            //     task.rasterTask.start.push(d)
+            // } else {
+            //     task.rasterTask.end.push({ ts: e.ts })
+            // }
+            d = e.args
+            d.ts = e.ts
+            d.tid = e.tid
+            d.dur = e.dur
+            d.type = 'RasterTask'
+            workloads.push(d)
             break
         case "ImageDecodeTask":
-            if (e.ph === 'B') {
-                d = e.args
-                d.tid = e.tid
-                d.ts = e.ts
-                task.imageDecodeTask.start.push(d)
-            } else {
-                task.imageDecodeTask.end.push({ ts: e.ts })
-            }
+            // if (e.ph === 'B') {
+            //     d = e.args
+            //     d.tid = e.tid
+            //     d.ts = e.ts
+            //     task.imageDecodeTask.start.push(d)
+            // } else {
+            //     task.imageDecodeTask.end.push({ ts: e.ts })
+            // }
+            d = e.args
+            d.ts = e.ts
+            d.tid = e.tid
+            d.dur = e.dur
+            d.type = 'ImageDecodeTask'
+            workloads.push(d)
             break
         case "Decode Image":
             d = e.args
@@ -247,77 +289,77 @@ data.traceEvents.forEach(e => {
     }
 })
 
-var l = task.parseHTML.start.length
-for (var i = 0; i < l; i++) {
-    ts = task.parseHTML.start[i].ts
-    dur = task.parseHTML.end[i].ts - task.parseHTML.start[i].ts
-    d = merge(task.parseHTML.start[i], task.parseHTML.end[i])
-    d.type = "ParseHTML"
-    d.tid = task.parseHTML.start[i].tid
-    d.ts = ts
-    d.dur = dur
-    workloads.push(d)
-}
+// var l = task.parseHTML.start.length
+// for (var i = 0; i < l; i++) {
+//     ts = task.parseHTML.start[i].ts
+//     dur = task.parseHTML.end[i].ts - task.parseHTML.start[i].ts
+//     d = merge(task.parseHTML.start[i], task.parseHTML.end[i])
+//     d.type = "ParseHTML"
+//     d.tid = task.parseHTML.start[i].tid
+//     d.ts = ts
+//     d.dur = dur
+//     workloads.push(d)
+// }
 
-l = task.layout.start.length
-for (var i = 0; i < l; i++) {
-    ts = task.layout.start[i].ts
-    dur = task.layout.end[i].ts - task.layout.start[i].ts
-    d = merge(task.layout.start[i], task.layout.end[i])
-    d.type = "Layout"
-    d.tid = task.layout.start[i].tid
-    d.ts = ts
-    d.dur = dur
-    workloads.push(d)
-}
+// l = task.layout.start.length
+// for (var i = 0; i < l; i++) {
+//     ts = task.layout.start[i].ts
+//     dur = task.layout.end[i].ts - task.layout.start[i].ts
+//     d = merge(task.layout.start[i], task.layout.end[i])
+//     d.type = "Layout"
+//     d.tid = task.layout.start[i].tid
+//     d.ts = ts
+//     d.dur = dur
+//     workloads.push(d)
+// }
 
-l = task.updateLayer.start.length
-for (var i = 0; i < l; i++) {
-    d = task.updateLayer.start[i]
-    d.type = "UpdateLayer"
-    d.tid = task.updateLayer.start[i].tid
-    d.dur = task.updateLayer.end[i].ts - d.ts
-    workloads.push(d)
-}
+// l = task.updateLayer.start.length
+// for (var i = 0; i < l; i++) {
+//     d = task.updateLayer.start[i]
+//     d.type = "UpdateLayer"
+//     d.tid = task.updateLayer.start[i].tid
+//     d.dur = task.updateLayer.end[i].ts - d.ts
+//     workloads.push(d)
+// }
 
-l = task.updateLayoutTree.start.length
-for (var i = 0; i < l; i++) {
-    ts = task.updateLayoutTree.start[i].ts
-    dur = task.updateLayoutTree.end[i].ts - task.updateLayoutTree.start[i].ts
-    d = merge(task.updateLayoutTree.start[i], task.updateLayoutTree.end[i])
-    d.type = "UpdateLayoutTree"
-    d.tid = task.updateLayoutTree.start[i].tid
-    d.ts = ts
-    d.dur = dur
-    workloads.push(d)
-}
+// l = task.updateLayoutTree.start.length
+// for (var i = 0; i < l; i++) {
+//     ts = task.updateLayoutTree.start[i].ts
+//     dur = task.updateLayoutTree.end[i].ts - task.updateLayoutTree.start[i].ts
+//     d = merge(task.updateLayoutTree.start[i], task.updateLayoutTree.end[i])
+//     d.type = "UpdateLayoutTree"
+//     d.tid = task.updateLayoutTree.start[i].tid
+//     d.ts = ts
+//     d.dur = dur
+//     workloads.push(d)
+// }
 
-l = task.compositeLayers.start.length
-for (var i = 0; i < l; i++) {
-    d = task.compositeLayers.start[i]
-    d.type = "CompositeLayers"
-    d.tid = task.compositeLayers.start[i].tid
-    d.dur = task.compositeLayers.end[i].ts - d.ts
-    workloads.push(d)
-}
+// l = task.compositeLayers.start.length
+// for (var i = 0; i < l; i++) {
+//     d = task.compositeLayers.start[i]
+//     d.type = "CompositeLayers"
+//     d.tid = task.compositeLayers.start[i].tid
+//     d.dur = task.compositeLayers.end[i].ts - d.ts
+//     workloads.push(d)
+// }
 
-l = task.rasterTask.start.length
-for (var i = 0; i < l; i++) {
-    d = task.rasterTask.start[i]
-    d.type = "RasterTask"
-    d.tid = task.rasterTask.start[i].tid
-    d.dur = task.rasterTask.end[i].ts - d.ts
-    workloads.push(d)
-}
+// l = task.rasterTask.start.length
+// for (var i = 0; i < l; i++) {
+//     d = task.rasterTask.start[i]
+//     d.type = "RasterTask"
+//     d.tid = task.rasterTask.start[i].tid
+//     d.dur = task.rasterTask.end[i].ts - d.ts
+//     workloads.push(d)
+// }
 
-l = task.imageDecodeTask.start.length
-for (var i = 0; i < l; i++) {
-    d = task.imageDecodeTask.start[i]
-    d.type = "ImageDecodeTask"
-    d.tid = task.imageDecodeTask.start[i].tid
-    d.dur = task.imageDecodeTask.end[i].ts - d.ts
-    workloads.push(d)
-}
+// l = task.imageDecodeTask.start.length
+// for (var i = 0; i < l; i++) {
+//     d = task.imageDecodeTask.start[i]
+//     d.type = "ImageDecodeTask"
+//     d.tid = task.imageDecodeTask.start[i].tid
+//     d.dur = task.imageDecodeTask.end[i].ts - d.ts
+//     workloads.push(d)
+// }
 
 nav_times.sort((a, b) => { return a.ts - b.ts })
 var navigation_start = nav_times[0].ts

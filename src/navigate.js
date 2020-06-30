@@ -55,4 +55,5 @@ async function navigate(url) {
     await page.goto(url)
 }
 
-navigate('https://www.baidu.com')
+var url = process.argv[2]
+navigate(url)
